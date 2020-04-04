@@ -1,2 +1,0 @@
-bot_token = Njk1NzE4ODY0NTk5Nzc3NDMw.XogbJA.H97FwO2UxTBX_XrDEvugiqPiqgo
-command_prefix = $
