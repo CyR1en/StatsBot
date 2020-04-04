@@ -3,7 +3,7 @@ import logging
 import discord.ext
 from discord.ext import commands
 
-from src.cogs import Greetings
+from src.cogs import General
 from src.configuration import ConfigFile, ConfigNode
 
 logger = logging.getLogger('discord')
@@ -15,7 +15,7 @@ logger.addHandler(handler)
 config_file = ConfigFile("config")
 
 bot = commands.Bot(command_prefix=config_file.get_node(ConfigNode.PREFIX))
-bot.add_cog(Greetings(bot))
+bot.add_cog(General(bot, config_file))
 
 token = config_file.get_node(ConfigNode.TOKEN)
 if token == ConfigNode.TOKEN.value[1]:

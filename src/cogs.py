@@ -2,9 +2,10 @@ import discord
 from discord.ext import commands
 
 
-class Greetings(commands.Cog):
-    def __init__(self, bot):
+class General(commands.Cog):
+    def __init__(self, bot, config):
         self.bot = bot
+        self.config = config
         self._last_member = None
 
     @commands.Cog.listener()
