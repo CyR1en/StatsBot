@@ -3,8 +3,8 @@ import logging
 import discord.ext
 from discord.ext import commands
 
-from cogs import Greetings
-from configuration import ConfigFile, ConfigNode
+from src.cogs import Greetings
+from src.configuration import ConfigFile, ConfigNode
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
