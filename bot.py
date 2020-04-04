@@ -1,22 +1,33 @@
-import discord
+import logging
+
+import discord.ext
+from discord.ext import commands
+
+from cogs import Greetings
 from configuration import ConfigFile, ConfigNode
 
-client = discord.Client()
+logger = logging.getLogger('discord')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
+
+config_file = ConfigFile("config")
+
+bot = commands.Bot(command_prefix=config_file.get_node(ConfigNode.PREFIX))
+bot.add_cog(Greetings(bot))
+
+token = config_file.get_node(ConfigNode.TOKEN)
+if token == ConfigNode.TOKEN.value[1]:
+    token = input("The config file is either newly generated or the token was left to its default value. \n"
+                  "Please enter your bot's token:")
+    config_file.set(ConfigNode.TOKEN, token)
 
 
-@client.event
+@bot.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    print('Successfully logged in as {}'.format(bot.user))
+
+bot.run(token)
 
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-
-    if message.content.startswith('$hello'):
-        await message.channel.send('Lorenzo GAAY!')
-
-config_file = ConfigFile("bot_config")
-
-client.run(config_file.get_node(ConfigNode.TOKEN))
