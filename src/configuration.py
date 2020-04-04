@@ -1,5 +1,7 @@
+import ast
 import fileinput
 import os
+import re
 import sys
 from abc import abstractmethod, ABC
 from enum import Enum
@@ -65,6 +67,14 @@ class ConfigNode(Enum):
     """
     TOKEN = ("bot_token", "replace this with your bot's token")
     PREFIX = ("command_prefix", "$")
+    # User IDs that have elevated permissions
+    ELEVATED_IDS = ("elevated_ids", "[123123123123123, 321321321312321321]")
+
+    def get_key(self):
+        return self.value[0]
+
+    def get_value(self):
+        return self.value[1]
 
 
 class ConfigFile(File, ABC):
@@ -101,14 +111,27 @@ class ConfigFile(File, ABC):
                 self.nodes[key] = self.__get_val_from_line(line)
         f.close()
 
-    def get_node(self, node):
+    def get_string_node(self, node):
         """
-        Returns a value of a node
+        Get a value of a node
 
         :param: node: ConfigNode that you want the value of.
         :return: The value of the ConfigNode in the config.
         """
-        return self.nodes[node.value[0]]
+        return self.nodes[node.value[0]].replace("\n", "")
+
+    def get_list_node(self, node):
+        """
+        Get a node with a value of a list.
+
+        :param node: ConfigNode with a value of list.
+        :return: Returns a list if the value of a node looks like a list,
+        return empty list otherwise.
+        """
+        val = self.nodes[node.get_key()]
+        if not re.match('\\[.*?\\]', val):
+            return []
+        return ast.literal_eval(val)
 
     def set(self, node, value):
         """
@@ -121,7 +144,7 @@ class ConfigFile(File, ABC):
         """
         for line in fileinput.input(self.path, inplace=True):
             key = self.__get_key_from_line(line)
-            if key is not -1 and key == node.value[0]:
+            if key is not -1 and key == node.get_key():
                 line = "{} = {}\n".format(key, value)
                 self.nodes[key] = value
             sys.stdout.write(line)
@@ -145,7 +168,7 @@ class ConfigFile(File, ABC):
         f = open(self.path, 'r+')
         for node in ConfigNode:
             if not self.__node_in_file(f, node):
-                f.write("{} = {}\n".format(node.value[0], node.value[1]))
+                f.write("{} = {}\n".format(node.get_key(), node.get_value()))
         f.close()
 
     def file_not_exists_method(self):
@@ -157,7 +180,7 @@ class ConfigFile(File, ABC):
         """
         f = open(self.path, 'w+')
         for node in ConfigNode:
-            f.write("{} = {}\n".format(node.value[0], node.value[1]))
+            f.write("{} = {}\n".format(node.get_key(), node.get_value()))
         f.close()
 
     # Private static Methods
@@ -203,7 +226,7 @@ class ConfigFile(File, ABC):
         :return: Returns true if the param node is in the config file, false otherwise.
         """
         for line in f:
-            if line.startswith(node.value[0]):
+            if line.startswith(node.get_key()):
                 return True
         return False
 
@@ -216,6 +239,6 @@ class ConfigFile(File, ABC):
         :return: Returns true if the key is defined in ConfigNode, false otherwise.
         """
         for node in ConfigNode:
-            if key == node.value[0]:
+            if key == node.get_key():
                 return True
         return False
